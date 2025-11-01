@@ -7,6 +7,7 @@ import userRoutes from "./routes/users.js";
 import eventRoutes from "./routes/events.js";
 import rsvpRoutes from "./routes/rsvps.js";
 import analyticsRoutes from "./routes/analytics.js";
+import recommendRoutes from "./routes/recommend.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/rsvps", rsvpRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/recommend", recommendRoutes);
 
 // Health check krwa lo
 app.get("/api/health", (req, res) => res.json({ ok: true }));

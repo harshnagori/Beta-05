@@ -19,3 +19,9 @@ export const rsvpEvent = async ({ userId, eventId, status = "going" }) => {
   const res = await API.post("/rsvps", { userId, eventId, status });
   return res.data;
 };
+
+
+export const fetchRecommendations = async (userId, limit = 6) => {
+  const res = await API.get(`/recommend/${userId}?limit=${limit}`);
+  return res.data.recommendations;
+};

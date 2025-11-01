@@ -1,8 +1,13 @@
 import express from "express";
-import { getEvents, createEvent } from "../controllers/eventController.js";
+import { protect } from "../middleware/authMiddleware.js";
+import { listEvents, createEvent } from "../controllers/eventController.js";
+
 const router = express.Router();
 
-router.get("/", getEvents);
-router.post("/", createEvent);
+// Public route — anyone can view events
+router.get("/", listEvents);
+
+// Protected route — only logged-in users (with JWT) can create events
+router.post("/", protect, createEvent);
 
 export default router;

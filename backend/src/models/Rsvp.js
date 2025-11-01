@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-const rsvpSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
+const RsvpSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
-  createdAt: { type: Date, default: Date.now },
+  status: { type: String, enum: ["going", "interested"], default: "going" },
+  createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.model("RSVP", rsvpSchema);
+export default mongoose.model("RSVP", RsvpSchema);

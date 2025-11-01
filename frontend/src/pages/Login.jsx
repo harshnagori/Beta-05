@@ -1,35 +1,52 @@
-// src/pages/Login.jsx
-const Login = () => {
+import React, { useState } from "react";
+import API from "../api/axiosConfig";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await API.post("/auth/login", form);
+      if (res.data.token) {
+        login(res.data.user, res.data.token);
+        navigate("/events");
+      } else {
+        setError(res.data.message || "Login failed");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex justify-center items-center min-h-[70vh]">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-[#0056B3] mb-6">
-          Welcome Back
-        </h2>
-        <form className="space-y-5">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-[#007AFF]"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-[#007AFF]"
-          />
-          <button className="w-full bg-[#0056B3] text-white p-3 rounded-lg hover:bg-[#004999] transition">
-            Login
-          </button>
+    <div className="max-w-md mx-auto">
+      <div className="card">
+        <h2 className="text-2xl font-bold text-[var(--primary)] mb-4">Login</h2>
+        <form onSubmit={submit} className="space-y-4">
+          <input type="email" required placeholder="Email" value={form.email}
+                 onChange={(e)=>setForm({...form,email:e.target.value})}
+                 className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"/>
+          <input type="password" required placeholder="Password" value={form.password}
+                 onChange={(e)=>setForm({...form,password:e.target.value})}
+                 className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"/>
+          {error && <div className="text-red-600 text-sm">{error}</div>}
+          <button className="btn-primary w-full" disabled={loading}>{loading ? "Logging in..." : "Login"}</button>
         </form>
-        <p className="text-center text-sm mt-4 text-gray-600">
-          Don’t have an account?{" "}
-          <a href="#" className="text-[#007AFF] hover:underline">
-            Sign up
-          </a>
-        </p>
+      </div>
+      <div className="text-center text-sm text-gray-600 mt-3">
+        New here? <a href="/register" className="text-[var(--accent)]">Create account</a>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

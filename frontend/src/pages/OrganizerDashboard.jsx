@@ -1,55 +1,41 @@
-// src/pages/OrganizerDashboard.jsx
-const OrganizerDashboard = () => {
-  const metrics = [
-    { label: "Total Events", value: 12 },
-    { label: "Registrations", value: 342 },
-    { label: "Upcoming", value: 4 },
-  ];
+import React, { useEffect, useState } from "react";
+import API from "../api/axiosConfig";
+
+export default function OrganizerDashboard() {
+  const [metrics, setMetrics] = useState({ totalEvents: 0, totalRSVPs: 0, topEvents: [] });
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await API.get("/analytics");
+        setMetrics(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    load();
+  }, []);
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <h2 className="text-2xl font-bold text-[#0056B3] mb-6">
-        Organizer Dashboard
-      </h2>
-      <div className="grid sm:grid-cols-3 gap-6 mb-8">
-        {metrics.map((m) => (
-          <div
-            key={m.label}
-            className="bg-white shadow-md rounded-2xl p-5 text-center"
-          >
-            <h3 className="text-3xl font-bold text-[#0056B3]">{m.value}</h3>
-            <p className="text-gray-600">{m.label}</p>
-          </div>
-        ))}
+    <div className="max-w-5xl mx-auto space-y-6">
+      <h2 className="text-2xl font-bold text-[var(--primary)]">Organizer Dashboard</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="metric"><div className="text-3xl font-bold text-[var(--primary)]">{metrics.totalEvents}</div><div className="text-sm text-gray-600">Total Events</div></div>
+        <div className="metric"><div className="text-3xl font-bold text-[var(--primary)]">{metrics.totalRSVPs}</div><div className="text-sm text-gray-600">Total RSVPs</div></div>
+        <div className="metric"><div className="text-3xl font-bold text-[var(--primary)]">{metrics.topEvents?.length || 0}</div><div className="text-sm text-gray-600">Top Events</div></div>
       </div>
-      <div className="bg-white p-6 rounded-2xl shadow-md">
-        <h3 className="font-semibold text-[#0056B3] mb-4">
-          Recent Registrations
-        </h3>
-        <table className="w-full text-sm text-left">
-          <thead className="text-gray-600 border-b">
-            <tr>
-              <th className="py-2">Name</th>
-              <th>Email</th>
-              <th>Event</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b">
-              <td className="py-2">Alice Johnson</td>
-              <td>alice@gmail.com</td>
-              <td>AI Summit</td>
-            </tr>
-            <tr>
-              <td className="py-2">Bob Smith</td>
-              <td>bob@gmail.com</td>
-              <td>Clean-Up Drive</td>
-            </tr>
-          </tbody>
-        </table>
+
+      <div className="card">
+        <h3 className="font-semibold text-[var(--primary)]">Top Events</h3>
+        <ul className="mt-4 space-y-2">
+          {(metrics.topEvents || []).map(ev => (
+            <li key={ev._id} className="flex justify-between items-center">
+              <div>{ev.title}</div>
+              <div className="text-sm text-gray-500">{ev.rsvpCount} RSVPs</div>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
-};
-
-export default OrganizerDashboard;
+}

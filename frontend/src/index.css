@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+:root {
+  --primary: #0056B3;
+  --accent: #007AFF;
+  --page: #F8F9FA;
+  --text: #333333;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  @apply bg-[var(--page)] text-[var(--text)] antialiased;
+  font-feature-settings: "cv02" on;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-lg p-5;
+}
+.btn-primary {
+  @apply bg-[var(--primary)] text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-[#004999] transition;
+}
+.badge {
+  @apply inline-flex items-center gap-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--accent)]/10 text-[var(--accent)];
+}

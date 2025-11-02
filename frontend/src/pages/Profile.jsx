@@ -1,153 +1,163 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import API from "../api/axiosConfig";
 import { useAuth } from "../context/AuthContext";
 
 export default function Profile() {
   const { user, login } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", bio: "", phone: "", location: "" });
-  const [editing, setEditing] = useState(false);
-  const [stats, setStats] = useState({ totalEvents: 0, totalRSVPs: 0 });
-  const [events, setEvents] = useState([]);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    bio: "",
+    interests: "",
+    skills: ""
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      setForm({
-        name: user.name || "",
-        email: user.email || "",
-        bio: user.bio || "",
-        phone: user.phone || "",
-        location: user.location || "",
-      });
-      loadData();
-    }
+    if (!user?._id) return;
+    (async () => {
+      try {
+        const res = await API.get(`/users/${user._id}`);
+        const u = res.data;
+        setForm({
+          name: u.name || "",
+          email: u.email || "",
+          bio: u.bio || "",
+          interests: (u.interests || []).join(", "),
+          skills: (u.skills || []).join(", ")
+        });
+      } catch (err) {
+        console.error("Load profile err", err);
+      }
+    })();
   }, [user]);
 
-  const loadData = async () => {
-    try {
-      const [eventsRes, statsRes] = await Promise.all([
-        API.get(`/users/${user?._id || user?.id}/events`),
-        API.get(`/users/${user?._id || user?.id}/stats`),
-      ]);
-      setEvents(eventsRes.data || []);
-      setStats(statsRes.data || { totalEvents: 0, totalRSVPs: 0 });
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const res = await API.put(`/users/${user._id || user.id}`, form);
+      const payload = {
+        name: form.name,
+        bio: form.bio,
+        interests: form.interests,
+        skills: form.skills
+      };
+      const res = await API.put(`/users/${user._id}`, payload);
       login(res.data, localStorage.getItem("token"));
-      alert("Profile updated successfully");
-      setEditing(false);
-    } catch {
+      alert("Profile updated");
+    } catch (err) {
+      console.error("Save profile err", err);
       alert("Failed to update profile");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!user)
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-center text-gray-600">
+        <p>Please login to edit your profile.</p>
+      </div>
+    );
+
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
-      {/* User Info */}
-      <div className="card p-6 flex flex-col sm:flex-row gap-6 items-center">
-        <img
-          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(form.name)}&background=random`}
-          alt="avatar"
-          className="w-28 h-28 rounded-full shadow-md"
-        />
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold text-[var(--primary)] mb-2">{form.name}</h2>
-          <p className="text-gray-600">{form.email}</p>
-          <p className="text-gray-500 mt-2">{form.bio || "No bio added yet."}</p>
-          <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
-            {form.phone && <div>📞 {form.phone}</div>}
-            {form.location && <div>📍 {form.location}</div>}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 px-4 py-10">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-3xl bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-8 border border-gray-100"
+      >
+        <motion.h2
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl font-bold text-center mb-8 text-indigo-600"
+        >
+          Your Profile
+        </motion.h2>
+
+        <form onSubmit={submit} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex flex-col">
+              <label className="text-gray-700 font-medium mb-1">Full Name</label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                className="border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-400 outline-none"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-gray-700 font-medium mb-1">Email</label>
+              <input
+                name="email"
+                value={form.email}
+                disabled
+                className="border border-gray-200 rounded-xl px-4 py-3 bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
           </div>
-          <button onClick={() => setEditing(!editing)} className="btn-primary mt-4">
-            {editing ? "Cancel" : "Edit Profile"}
-          </button>
-        </div>
-      </div>
 
-      {/* Edit Form */}
-      {editing && (
-        <div className="card p-6">
-          <h3 className="font-semibold text-[var(--primary)] mb-4">Edit Profile</h3>
-          <form onSubmit={submit} className="space-y-4">
-            <input
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-              placeholder="Name"
-              className="w-full border rounded-lg p-3"
-            />
-            <input
-              value={form.email}
-              disabled
-              placeholder="Email"
-              className="w-full border rounded-lg p-3 bg-gray-50"
-            />
-            <input
-              value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
-              placeholder="Phone"
-              className="w-full border rounded-lg p-3"
-            />
-            <input
-              value={form.location}
-              onChange={e => setForm({ ...form, location: e.target.value })}
-              placeholder="Location"
-              className="w-full border rounded-lg p-3"
-            />
+          <div>
+            <label className="text-gray-700 font-medium mb-1">Bio</label>
             <textarea
+              name="bio"
               value={form.bio}
-              onChange={e => setForm({ ...form, bio: e.target.value })}
-              placeholder="Bio"
-              className="w-full border rounded-lg p-3 h-24"
+              onChange={handleChange}
+              placeholder="Short bio"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 h-24 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
-            <button type="submit" className="btn-primary w-full">
-              Save Changes
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="text-gray-700 font-medium mb-1">Interests</label>
+              <input
+                name="interests"
+                value={form.interests}
+                onChange={handleChange}
+                placeholder="music, ai, gaming"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-gray-700 font-medium mb-1">Skills</label>
+              <input
+                name="skills"
+                value={form.skills}
+                onChange={handleChange}
+                placeholder="javascript, singing"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-400 outline-none"
+              />
+            </div>
+          </div>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex justify-center gap-4 pt-4"
+          >
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all"
+            >
+              {loading ? "Saving..." : "Save Profile"}
             </button>
-          </form>
-        </div>
-      )}
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="metric">
-          <div className="text-3xl font-bold text-[var(--primary)]">{stats.totalEvents}</div>
-          <div className="text-sm text-gray-600">Events Created</div>
-        </div>
-        <div className="metric">
-          <div className="text-3xl font-bold text-[var(--primary)]">{stats.totalRSVPs}</div>
-          <div className="text-sm text-gray-600">RSVPs Attended</div>
-        </div>
-      </div>
-
-      {/* Event History */}
-      <div className="card p-6">
-        <h3 className="font-semibold text-[var(--primary)] mb-4">Your Events</h3>
-        {events.length === 0 ? (
-          <div className="text-gray-500 text-sm">No events found.</div>
-        ) : (
-          <ul className="space-y-3">
-            {events.map(ev => (
-              <li
-                key={ev._id}
-                className="border p-4 rounded-lg hover:shadow-sm transition flex justify-between"
-              >
-                <div>
-                  <div className="font-medium">{ev.title}</div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(ev.date).toLocaleString()} • {ev.location}
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">{ev.rsvpCount || 0} RSVPs</div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, interests: "", skills: "" })}
+              className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-100 transition-all"
+            >
+              Clear
+            </button>
+          </motion.div>
+        </form>
+      </motion.div>
     </div>
   );
 }

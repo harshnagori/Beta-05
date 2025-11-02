@@ -26,6 +26,8 @@ app.use("/api/events", eventRoutes);
 app.use("/api/rsvps", rsvpRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/recommend", recommendRoutes);
+app.use("/api/events", eventRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 mongoose

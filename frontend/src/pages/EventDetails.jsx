@@ -1,83 +1,91 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import API from "../api/axiosConfig";
-import { Calendar, MapPin, Tag, ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function EventDetails() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get(`/events/${id}`)
-      .then((res) => setEvent(res.data))
-      .catch(console.error);
+    (async () => {
+      try {
+        const res = await API.get(`/events/${id}`);
+        setEvent(res.data);
+      } catch (err) {
+        console.error("Fetch event error:", err);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [id]);
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-600">
+        Loading event details...
+      </div>
+    );
 
   if (!event)
     return (
-      <div className="text-center py-20 text-gray-600 text-lg">Loading…</div>
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-600">
+        <p>Event not found.</p>
+        <Link
+          to="/events"
+          className="mt-4 text-indigo-600 hover:underline font-medium"
+        >
+          Back to Events
+        </Link>
+      </div>
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <Link
-          to="/events"
-          className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition mb-6"
-        >
-          <ArrowLeft size={18} /> Back to Events
-        </Link>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-4xl mx-auto py-12 px-6"
+    >
+      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+        <h2 className="text-4xl font-bold text-indigo-700 mb-4">
+          {event.title}
+        </h2>
+        <p className="text-gray-600 mb-6">{event.description}</p>
 
-        {/* Event Hero */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl p-8 shadow-lg mb-6">
-          <h1 className="text-3xl font-bold">{event.title}</h1>
-          <p className="text-indigo-100 mt-3 text-sm max-w-2xl">
-            {event.description}
-          </p>
-        </div>
-
-        {/* Details Card */}
-        <div className="bg-white/80 backdrop-blur-md border border-indigo-100 rounded-2xl shadow-md p-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <div className="flex items-center gap-3 text-gray-700">
-              <Calendar size={18} className="text-indigo-500" />
-              <span className="text-sm font-medium">
-                {new Date(event.time || event.date).toLocaleString()}
+        {event.tags && event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {event.tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm border border-indigo-100"
+              >
+                #{tag}
               </span>
-            </div>
-
-            <div className="flex items-center gap-3 text-gray-700">
-              <MapPin size={18} className="text-indigo-500" />
-              <span className="text-sm font-medium">{event.location}</span>
-            </div>
+            ))}
           </div>
+        )}
 
-          {event.tags && event.tags.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                <Tag size={16} className="text-indigo-500" /> Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {event.tags.map((tag, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1 text-xs bg-indigo-100 text-indigo-700 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+        {event.date && (
+          <p className="text-gray-500 text-sm mb-2">
+            📅 <strong>Date:</strong> {new Date(event.date).toLocaleDateString()}
+          </p>
+        )}
+        {event.location && (
+          <p className="text-gray-500 text-sm mb-6">
+            📍 <strong>Location:</strong> {event.location}
+          </p>
+        )}
 
-          <div className="mt-8 flex justify-end">
-            <button className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow transition">
-              RSVP Now
-            </button>
-          </div>
+        <div className="flex justify-end">
+          <Link
+            to="/events"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl transition"
+          >
+            Back to Events
+          </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

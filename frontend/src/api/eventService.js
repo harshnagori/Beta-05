@@ -22,6 +22,6 @@ export const rsvpEvent = async ({ userId, eventId, status = "going" }) => {
 
 
 export const fetchRecommendations = async (userId, limit = 6) => {
-  const res = await API.get(`/recommend/${userId}?limit=${limit}`);
+  const res = await API.get(`/recommend/${userId}?limit=${limit}`); 
   return res.data.recommendations;
 };

@@ -10,6 +10,7 @@ import CreateEvent from "./pages/CreateEvent";
 import OrganizerDashboard from "./pages/OrganizerDashboard";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ForYou from "./pages/ForYou";
 
 export default function App() {
   return (
@@ -24,9 +25,38 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/create" element={<ProtectedRoute><CreateEvent /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><OrganizerDashboard /></ProtectedRoute>} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create"
+            element={
+              <ProtectedRoute>
+                <CreateEvent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <OrganizerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/for-you"
+            element={
+              <ProtectedRoute>
+                <ForYou />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

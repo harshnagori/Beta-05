@@ -17,6 +17,7 @@ export default function Navbar() {
   const navLinks = [
     { to: "/events", label: "Events" },
     { to: "/create", label: "Create" },
+    { to: "/for-you", label: "For You" },
     ...(user ? [{ to: "/dashboard", label: "Dashboard" }] : []),
   ];
 

@@ -1,27 +1,54 @@
 import Event from "../models/Event.js";
 
-export const listEvents = async (req, res) => {
-  try {
-    const events = await Event.find();
-    res.json(events);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
+// Create new event
 export const createEvent = async (req, res) => {
   try {
-    const { title, description, date, location } = req.body;
+    const { title, description, date, time, location, tags } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required" });
+    }
+
     const event = new Event({
       title,
       description,
       date,
+      time,
       location,
-      createdBy: req.user._id
+      tags: Array.isArray(tags)
+        ? tags
+        : typeof tags === "string"
+        ? tags.split(",").map((t) => t.trim())
+        : [],
     });
-    await event.save();
-    res.status(201).json(event);
+
+    const saved = await event.save();
+    res.status(201).json(saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Create event error:", err);
+    res.status(500).json({ message: "Server error while creating event" });
+  }
+};
+
+// Get all events
+export const listEvents = async (req, res) => {
+  try {
+    const events = await Event.find().sort({ createdAt: -1 });
+    res.json(events);
+  } catch (err) {
+    console.error("List events error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get one event
+export const getEventById = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    res.json(event);
+  } catch (err) {
+    console.error("Get event error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

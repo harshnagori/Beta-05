@@ -1,28 +1,43 @@
-import User from "../models/User.js";
 import Event from "../models/Event.js";
-import { scoreEvent } from "../recommender/recommender.js";
+import User from "../models/User.js";
+import axios from "axios";
 
+/**
+ * GET /api/recommend/:id
+ * Uses ai_service to score events and returns ranked events.
+ */
 export const getRecommendations = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const limit = Number(req.query.limit || 12);
+    const userId = req.params.id;
+    console.log(`[recommendController] Requesting AI recommendations for user: ${userId}`);
 
     const user = await User.findById(userId).lean();
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    const events = await Event.find().lean();
+    // fetch candidate events (you can pre-filter by date/location in DB)
+    const events = await Event.find({}).lean();
 
+    // Build payload: send id + description for reliable mapping
+    const payload = {
+      user: `${(user.interests || []).join(" ")} ${(user.skills || []).join(" ")}`,
+      events: events.map(e => ({ id: e._id.toString(), text: `${e.title} ${e.description} ${(e.tags||[]).join(" ")}` }))
+    };
+
+    const aiResp = await axios.post("http://127.0.0.1:8000/recommend", payload, { timeout: 15000 });
+    console.log("[recommendController] AI response received");
+
+    // aiResp.data.recommendations expected: [{id,score}, ...]
+    const ranking = aiResp.data.recommendations || [];
+
+    // Map scores back to events
     const scored = events.map(ev => {
-      const { score, breakdown } = scoreEvent({ user, event: ev });
-      return { ...ev, score, breakdown };
-    });
+      const r = ranking.find(x => x.id === ev._id.toString());
+      return { ...ev, score: r ? r.score : 0 };
+    }).sort((a,b) => (b.score || 0) - (a.score || 0));
 
-    scored.sort((a, b) => b.score - a.score);
-    const top = scored.slice(0, limit);
-
-    res.json({ recommendations: top });
+    return res.json({ success: true, recommendations: scored });
   } catch (err) {
-    console.error("Recommend error:", err);
-    res.status(500).json({ message: err.message });
+    console.error("[recommendController] Error:", err.message);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

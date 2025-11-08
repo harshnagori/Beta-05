@@ -1,4 +1,3 @@
-// frontend/src/pages/ForYou.jsx
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import API from "../api/axiosConfig";
@@ -55,7 +54,8 @@ export default function ForYou() {
             animate={{ opacity: 1 }}
             className="text-center text-gray-600 text-lg"
           >
-            No recommendations yet. Update your profile with your interests and skills to get personalized suggestions.
+            No recommendations yet. Update your profile with your interests and
+            skills to get personalized suggestions.
           </motion.p>
         ) : (
           <motion.div
@@ -65,8 +65,8 @@ export default function ForYou() {
               hidden: { opacity: 0 },
               visible: {
                 opacity: 1,
-                transition: { staggerChildren: 0.1 }
-              }
+                transition: { staggerChildren: 0.1 },
+              },
             }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
           >
@@ -75,7 +75,7 @@ export default function ForYou() {
                 key={event._id}
                 variants={{
                   hidden: { opacity: 0, y: 30 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 whileHover={{ scale: 1.03 }}
                 className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all p-6 border border-gray-100 flex flex-col justify-between"
@@ -84,6 +84,14 @@ export default function ForYou() {
                   <h3 className="text-xl font-semibold text-indigo-700 mb-2">
                     {event.title}
                   </h3>
+
+                  {/* Match Percentage */}
+                  {event.score !== undefined && (
+                    <p className="text-green-600 font-medium mb-2">
+                      🎯 Match: {(event.score * 100).toFixed(1)}%
+                    </p>
+                  )}
+
                   <p className="text-gray-600 text-sm mb-3 line-clamp-3">
                     {event.description}
                   </p>

@@ -1,7 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import API from "../api/axiosConfig";
 import { useAuth } from "../context/AuthContext";
+
+// Simple Toast Component
+const Toast = ({ message, type = "success", onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, x: 50 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: 50 }}
+    className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50 ${
+      type === "success" ? "bg-green-500" : "bg-red-500"
+    }`}
+  >
+    {message}
+    <button
+      onClick={onClose}
+      className="ml-4 font-bold hover:underline"
+    >
+      ✕
+    </button>
+  </motion.div>
+);
 
 export default function Profile() {
   const { user, login } = useAuth();
@@ -13,6 +33,7 @@ export default function Profile() {
     skills: ""
   });
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null); // { message, type }
 
   useEffect(() => {
     if (!user?._id) return;
@@ -35,6 +56,11 @@ export default function Profile() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000); // auto-dismiss after 3s
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -47,10 +73,10 @@ export default function Profile() {
       };
       const res = await API.put(`/users/${user._id}`, payload);
       login(res.data, localStorage.getItem("token"));
-      alert("Profile updated");
+      showToast("Profile updated successfully!", "success");
     } catch (err) {
       console.error("Save profile err", err);
-      alert("Failed to update profile");
+      showToast("Failed to update profile.", "error");
     } finally {
       setLoading(false);
     }
@@ -65,6 +91,8 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 px-4 py-10">
+      <AnimatePresence>{toast && <Toast {...toast} onClose={() => setToast(null)} />}</AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,6 +107,7 @@ export default function Profile() {
         </motion.h2>
 
         <form onSubmit={submit} className="space-y-6">
+          {/* form fields same as before */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="flex flex-col">
               <label className="text-gray-700 font-medium mb-1">Full Name</label>

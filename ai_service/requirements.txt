@@ -1,5 +1,6 @@
 fastapi
 uvicorn
-sentence-transformers
-torch
 pydantic
+numpy
+huggingface-hub
+python-dotenv

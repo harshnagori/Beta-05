@@ -23,7 +23,13 @@ export const getRecommendations = async (req, res) => {
       events: events.map(e => ({ id: e._id.toString(), text: `${e.title} ${e.description} ${(e.tags||[]).join(" ")}` }))
     };
 
-    const aiResp = await axios.post("http://127.0.0.1:8000/recommend", payload, { timeout: 15000 });
+    const aiResp = await axios.post(
+      `${process.env.AI_SERVICE_URL}/recommend`,
+      payload,
+      { timeout: 60000 } // increase timeout too
+    );
+
+
     console.log("[recommendController] AI response received");
 
     // aiResp.data.recommendations expected: [{id,score}, ...]

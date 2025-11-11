@@ -14,10 +14,13 @@ import recommendRoutes from "./routes/recommend.js";
 dotenv.config();
 const app = express();
 
-app.use(cors());
+// Allowing onlyfrontend in production
+const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+app.use(cors({ origin: allowedOrigin, credentials: true }));
+
 app.use(express.json());
 
-// Health check kr lo bhai
+// health check kro lo bhaisahab
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authRoutes);

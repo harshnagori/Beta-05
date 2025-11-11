@@ -5,7 +5,7 @@ from typing import List
 import os
 
 app = FastAPI()
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L3-v2')
 
 class EventItem(BaseModel):
     id: str

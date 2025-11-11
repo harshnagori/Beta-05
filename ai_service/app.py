@@ -1,11 +1,17 @@
+# ai_service/app.py
+import os
+from typing import List
 from fastapi import FastAPI
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, util
-from typing import List
-import os
+
+# Config via env
+MODEL_NAME = os.getenv("MODEL_NAME", "sentence-transformers/paraphrase-MiniLM-L3-v2")
+PORT = int(os.getenv("PORT", 8000))
 
 app = FastAPI()
-model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L3-v2')
+print(f"[ai_service] Loading model: {MODEL_NAME}")
+model = SentenceTransformer(MODEL_NAME)
 
 class EventItem(BaseModel):
     id: str
@@ -32,4 +38,4 @@ def recommend(data: RecommendRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

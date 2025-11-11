@@ -55,6 +55,11 @@ def recommend(data: RecommendRequest):
 
     return {"recommendations": ranked_sorted}
 
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok"}
+
+
 # Run locally
 if __name__ == "__main__":
     import uvicorn
